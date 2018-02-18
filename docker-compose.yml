@@ -4,8 +4,8 @@ networks:
 
 services:
   rutas.mapanica.net:
-    image: goeuro/opentripplanner
+    build: https://gitlab.com/opentransitmap/docker-opentripplanner.git
     volumes:
-      - ./data/rutas/ni-managua:/usr/local/share/java/ni-managua
+      - ./data/rutas:/data
     networks:
       - web
