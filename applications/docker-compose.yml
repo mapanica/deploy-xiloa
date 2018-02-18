@@ -1,0 +1,24 @@
+version: '2'
+networks:
+  web:
+    external:
+      name: reverseproxy_web
+  internal:
+
+services:
+
+  opentripplanner:
+    build: https://gitlab.com/opentransitmap/docker-opentripplanner.git
+    restart: always
+    volumes:
+      - ./data/opentripplanner:/data
+    expose:
+      - "8080"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=opentripplanner"
+      - "traefik.frontend.rule=Host:api.rutas.mapanica.net"
+      - "traefik.docker.network=web"
+      - "traefik.port=8080"
+    networks:
+      - web
