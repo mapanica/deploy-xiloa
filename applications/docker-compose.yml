@@ -22,3 +22,21 @@ services:
       - "traefik.port=8080"
     networks:
       - web
+      - internal
+
+  userinterface:
+    build: https://gitlab.com/opentransitmap/docker-opentripplanner-ui.git
+    restart: always
+    volumes:
+      - ./data/userinterface:/data
+    expose:
+      - "8080"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=userinterface"
+      - "traefik.frontend.rule=Host:new.rutas.mapanica.net"
+      - "traefik.docker.network=web"
+      - "traefik.port=8080"
+    networks:
+      - web
+      - internal
