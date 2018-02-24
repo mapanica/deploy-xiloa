@@ -10,6 +10,11 @@ entryPoint = "https"
 onDemand = false
 OnHostRule = true
 
+# Use a HTTP-01 acme challenge rather than TLS-SNI-01 challenge
+[acme.httpChallenge]
+  # EntryPoint to use for the challenges.
+  entryPoint = "http"
+
 [entryPoints]
   [entryPoints.http]
     address = ":80"
@@ -27,27 +32,3 @@ endpoint = "unix:///var/run/docker.sock"
 domain = "docker.local"
 watch = true
 exposedbydefault = false
-
-# new domains and subdomains can be configured here.
-# note that domains and subdomains not defined in this file will still work,
-# when defined in a container Host-Rule. However, they will generate
-# their own ACME request, and will count towards LetsEncrypt's rate limit.
-#[[acme.domains]]
-#  main = "mapanica.net"
-#  sans = [
-#    # services
-#    "mumble.mapanica.net",
-#    # ...
-#
-#    # web vhosts:
-#    "www.mapanica.net",
-#    "git.mapanica.net",
-#    "docker.mapanica.net",
-#    "chat.mapanica.net",
-#  ]
-
-# You can define multiple of these blocks, each of which will result in one
-# certificate.
-#[[acme.domains]]
-#  main = "mapanica.net"
-#  sans = ["www.mapanica.net", "mail.mapanica.net"]
