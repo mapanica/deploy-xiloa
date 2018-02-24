@@ -10,6 +10,7 @@ services:
   opentripplanner:
     build: https://gitlab.com/opentransitmap/docker-opentripplanner.git
     restart: always
+    command: "--server"
     volumes:
       - ./data/opentripplanner:/data
     expose:
@@ -18,25 +19,25 @@ services:
       - "traefik.enable=true"
       - "traefik.backend=opentripplanner"
       - "traefik.frontend.rule=Host:api.rutas.mapanica.net"
-      - "traefik.docker.network=web"
+      - "traefik.docker.network=reverseproxy_web"
       - "traefik.port=8080"
     networks:
       - web
       - internal
 
-  userinterface:
-    build: https://gitlab.com/opentransitmap/docker-opentripplanner-ui.git
-    restart: always
-    volumes:
-      - ./data/userinterface:/data
-    expose:
-      - "8080"
-    labels:
-      - "traefik.enable=true"
-      - "traefik.backend=userinterface"
-      - "traefik.frontend.rule=Host:new.rutas.mapanica.net"
-      - "traefik.docker.network=web"
-      - "traefik.port=8080"
-    networks:
-      - web
-      - internal
+#  userinterface:
+#    build: https://gitlab.com/opentransitmap/docker-opentripplanner-ui.git
+#    restart: always
+#    volumes:
+#      - ./data/userinterface:/data
+#    expose:
+#      - "8080"
+#    labels:
+#      - "traefik.enable=true"
+#      - "traefik.backend=userinterface"
+#      - "traefik.frontend.rule=Host:new.rutas.mapanica.net"
+#      - "traefik.docker.network=reverseproxy_web"
+#      - "traefik.port=8080"
+#    networks:
+#      - web
+#      - internal
