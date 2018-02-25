@@ -8,7 +8,7 @@ networks:
 services:
 
   opentripplanner:
-    build: https://gitlab.com/opentransitmap/docker-opentripplanner.git
+    image: opentransitmap/opentripplanner
     restart: always
     command: "--build /data/graphs/nicaragua --server --basePath /data --router nicaragua --insecure"
     volumes:
@@ -25,11 +25,11 @@ services:
       - web
       - internal
 
-  userinterface:
+  webui:
     image: opentransitmap/otm-webui
     restart: always
     volumes:
-      - ./data/userinterface:/opt/digitransit-ui/app
+      - ./data/webui/config.js:/opt/digitransit-ui/app/configurations/config.default.js
     expose:
       - "8080"
     labels:
