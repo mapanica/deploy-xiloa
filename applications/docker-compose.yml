@@ -29,7 +29,7 @@ services:
     image: opentransitmap/otm-webui
     restart: always
     volumes:
-      - ./data/webui/config.js:/opt/digitransit-ui/app/configurations/config.default.js
+      - ./conf/webui/config.js:/opt/digitransit-ui/app/configurations/config.default.js
     expose:
       - "8080"
     labels:
