@@ -7,6 +7,7 @@ networks:
 
 services:
 
+  # The router api
   opentripplanner:
     image: opentransitmap/opentripplanner
     restart: always
@@ -25,6 +26,7 @@ services:
       - web
       - internal
 
+  # The user interface
   webui:
     image: opentransitmap/otm-webui
     restart: always
@@ -32,12 +34,32 @@ services:
       - ./data/webui:/opt/digitransit-ui/app
     expose:
       - "8080"
+    ports:
+      - "9000"
+    environment:
+      - "NODE_ENV=production"
     labels:
       - "traefik.enable=true"
       - "traefik.backend=userinterface"
       - "traefik.frontend.rule=Host:new.rutas.mapanica.net"
       - "traefik.docker.network=reverseproxy_web"
       - "traefik.port=8080"
+    networks:
+      - web
+      - internal
+
+  # The background map
+  map:
+    image: nginx
+    restart: always
+    volumes:
+      - ./data/map:/usr/share/nginx/html:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=map.rutas.mapanica.net"
+      - "traefik.frontend.rule=Host:map.rutas.mapanica.net"
+      - "traefik.docker.network=reverseproxy_web"
+      - "traefik.port=80"
     networks:
       - web
       - internal
