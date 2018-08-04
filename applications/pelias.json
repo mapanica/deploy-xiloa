@@ -1,0 +1,96 @@
+{
+  "logger": {
+    "level": "info",
+    "timestamp": false
+  },
+  "esclient": {
+    "hosts": [
+      { "host": "elasticsearch" }
+    ]
+  },
+  "elasticsearch": {
+    "settings": {
+      "index": {
+        "refresh_interval": "10s",
+        "number_of_replicas": "0",
+        "number_of_shards": "1"
+      }
+    }
+  },
+  "acceptance-tests": {
+    "endpoints": {
+      "docker": "http://api:4000/v1/"
+    }
+  },
+  "api": {
+    "textAnalyzer": "libpostal",
+    "services": {
+      "pip": { "url": "http://pip:4200" },
+      "libpostal": { "url": "http://libpostal:8080" },
+      "placeholder": { "url": "http://placeholder:4100" },
+      "interpolation": { "url": "http://interpolation:4300" }
+    },
+    "defaultParameters": {
+      "focus.point.lat": 45.52,
+      "focus.point.lon": -122.67
+    }
+  },
+  "imports": {
+    "adminLookup": {
+      "enabled": true
+    },
+    "geonames": {
+      "datapath": "/data/geonames",
+      "countryCode": "NI"
+    },
+    "openstreetmap": {
+      "download": [
+        { "sourceURL": "http://download.geofabrik.de/central-america/nicaragua-latest.osm.pbf" }
+      ],
+      "leveldbpath": "/tmp",
+      "datapath": "/data/openstreetmap",
+      "import": [{
+        "filename": "nicaragua-latest.osm.pbf"
+      }]
+    },
+    "transit": {
+      "datapath": "/data/transit",
+      "feeds": [
+        {
+          "layerId": "stops",
+          "url": "https://datos.mapanica.net/ni-managua-gtfs.zip",
+          "filename": "NI-IRTRAMMA-stops.txt",
+          "agencyId": "IRTRAMMA",
+          "agencyName": "IRTRAMMA",
+          "layerName": "Stop"
+        },
+        {
+          "layerId": "stops",
+          "url": "https://datos.mapanica.net/ni-esteli-gtfs.zip",
+          "filename": "NI-ESTELI-stops.txt",
+          "agencyId": "ESTELI",
+          "agencyName": "ESTELI",
+          "layerName": "Stop"
+        },
+        {
+          "layerId": "stops",
+          "url": "https://datos.mapanica.net/ni-gtfs.zip",
+          "filename": "NI-stops.txt",
+          "agencyId": "NI",
+          "agencyName": "Interurbanos",
+          "layerName": "Stop"
+        }
+      ]
+    },
+    "interpolation": {
+      "download": {
+        "tiger": {
+          "datapath": "/data/tiger",
+          "states": [
+            { "state_code": 41, "county_code": 67, "name": "Washington County, OR" }
+          ]
+        }
+      }
+    }
+  }
+}

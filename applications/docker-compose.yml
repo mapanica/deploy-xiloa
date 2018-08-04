@@ -1,65 +1,199 @@
-version: '2'
+version: '3'
 networks:
   web:
     external:
       name: reverseproxy_web
   internal:
 
+volumes:
+  libpostaldata:
+    driver: local
+
 services:
 
-  # The router api
-  opentripplanner:
-    image: opentransitmap/opentripplanner
+  libpostal_baseimage:
+    image: pelias/libpostal_baseimage
+    container_name: pelias_libpostal_baseimage
+    networks:
+      - internal
+
+  libpostal:
+    image: pelias/go-whosonfirst-libpostal
+    container_name: pelias_libpostal
     restart: always
-    command: "--build /data/graphs/nicaragua --server --basePath /data --router nicaragua --insecure"
+    ports: [ "8080:8080" ]
+    networks:
+      - internal
+
+  schema:
+    image: pelias/schema:master
+    container_name: pelias_schema
     volumes:
-      - ./data/opentripplanner:/data
-    expose:
-      - "8080"
-    labels:
-      - "traefik.enable=true"
-      - "traefik.backend=opentripplanner"
-      - "traefik.frontend.rule=Host:api.rutas.mapanica.net"
-      - "traefik.docker.network=reverseproxy_web"
-      - "traefik.port=8080"
+      - "./pelias.json:/code/pelias.json"
+      - "./conf/pelias/synonyms/custom_name.txt:/code/pelias/schema/synonyms/custom_name.txt"
+      - "./conf/pelias/synonyms/custom_street.txt:/code/pelias/schema/synonyms/custom_street.txt"
+    networks:
+      - internal
+
+  api:
+    image: pelias/api:master
+    container_name: pelias_api
+    restart: always
+    environment: [ "PORT=4000" ]
+    ports: [ "4000:4000" ]
+    volumes:
+      - "./pelias.json:/code/pelias.json"
+      - "libpostaldata:/usr/share/libpostal"
     networks:
       - web
       - internal
 
-  # The user interface
-  webui:
-    image: opentransitmap/otm-webui
+  placeholder:
+    image: pelias/placeholder:master
+    container_name: pelias_placeholder
     restart: always
+    environment: [ "PORT=4100" ]
+    ports: [ "4100:4100" ]
     volumes:
-      - ./data/webui:/opt/digitransit-ui/app
-    expose:
-      - "8080"
-    ports:
-      - "9000"
-    environment:
-      - "NODE_ENV=production"
-    labels:
-      - "traefik.enable=true"
-      - "traefik.backend=userinterface"
-      - "traefik.frontend.rule=Host:new.rutas.mapanica.net"
-      - "traefik.docker.network=reverseproxy_web"
-      - "traefik.port=8080"
+      - "./pelias.json:/code/pelias.json"
+      - "${DATA_DIR}:/data"
+
+  openstreetmap:
+    image: pelias/openstreetmap:master
+    container_name: pelias_openstreetmap
+    volumes:
+      - "./pelias.json:/code/pelias.json"
+      - "${DATA_DIR}:/data"
     networks:
-      - web
       - internal
 
-  # The background map
-  map:
+  transit:
+    image: pelias/transit:master
+    container_name: pelias_transit
+    volumes:
+      - "./pelias.json:/code/pelias.json"
+      - "${DATA_DIR}:/data"
+    networks:
+      - internal
+
+  polylines:
+    image: pelias/polylines:master
+    container_name: pelias_polylines
+    volumes:
+      - "./pelias.json:/code/pelias.json"
+      - "${DATA_DIR}:/data"
+    networks:
+      - internal
+
+  interpolation:
+    depends_on: [ "libpostal_baseimage" ]
+    image: pelias/interpolation:master
+    container_name: pelias_interpolation
+    restart: always
+    environment: [ "PORT=4300" ]
+    ports: [ "4300:4300" ]
+    volumes:
+      - "./pelias.json:/code/pelias.json"
+      - "libpostaldata:/usr/share/libpostal"
+      - "${DATA_DIR}:/data"
+    networks:
+      - internal
+
+  pip:
+    image: pelias/pip-service:master
+    container_name: pelias_pip-service
+    restart: always
+    environment: [ "PORT=4200" ]
+    ports: [ "4200:4200" ]
+    volumes:
+      - "./pelias.json:/code/pelias.json"
+      - "${DATA_DIR}:/data"
+    networks:
+      - internal
+
+  document-service:
+    image: pelias/document-service:master
+    container_name: pelias_document-service
+    restart: always
+    ports: [ "5000:5000" ]
+    volumes:
+      - "./pelias.json:/code/pelias.json"
+      - "${DATA_DIR}:/data"
+    networks:
+      - internal
+
+  preview:
     image: nginx
+    container_name: pelias_preview
     restart: always
+    ports: [ "3000:80" ]
     volumes:
-      - ./data/map:/usr/share/nginx/html:ro
+      - "/home/user/pelias/common/preview:/usr/share/nginx/html"
     labels:
       - "traefik.enable=true"
-      - "traefik.backend=map.rutas.mapanica.net"
-      - "traefik.frontend.rule=Host:map.rutas.mapanica.net"
+      - "traefik.backend=preview"
+      - "traefik.frontend.rule=Host:buscar.mapanica.net"
       - "traefik.docker.network=reverseproxy_web"
-      - "traefik.port=80"
+      - "traefik.port=3000"
     networks:
       - web
       - internal
+
+  elasticsearch:
+    image: pelias/elasticsearch
+    container_name: pelias_elasticsearch
+    restart: always
+    ports: [ "9200:9200", "9300:9300" ]
+    volumes:
+      - "${DATA_DIR}/elasticsearch:/usr/share/elasticsearch/data"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    cap_add: [ "IPC_LOCK" ]
+    networks:
+      - internal
+
+  # # The router api
+  # opentripplanner:
+  #   image: opentransitmap/opentripplanner
+  #   restart: always
+  #   command: "--build /data/graphs/nicaragua --server --basePath /data --router nicaragua --insecure"
+  #   volumes:
+  #     - ./data/opentripplanner:/data
+  #   expose:
+  #     - "8080"
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.backend=opentripplanner"
+  #     - "traefik.frontend.rule=Host:api.rutas.mapanica.net"
+  #     - "traefik.docker.network=reverseproxy_web"
+  #     - "traefik.port=8080"
+  #   networks:
+  #     - web
+  #     - internal
+
+  # # The user interface
+  # webui:
+  #   image: opentransitmap/otm-webui
+  #   restart: always
+  #   volumes:
+  #     - ./data/webui:/opt/digitransit-ui/app
+  #   expose:
+  #     - "8080"
+  #   ports:
+  #     - "9000"
+  #   environment:
+  #     - "NODE_ENV=production"
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.backend=userinterface"
+  #     - "traefik.frontend.rule=Host:transporte.mapanica.net"
+  #     - "traefik.docker.network=reverseproxy_web"
+  #     - "traefik.port=8080"
+  #   networks:
+  #     - web
+  #     - internal
