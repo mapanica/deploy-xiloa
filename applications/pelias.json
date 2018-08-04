@@ -82,6 +82,14 @@
         }
       ]
     },
+    "whosonfirst": {
+      "datapath": "/data/whosonfirst",
+      "importVenues": false,
+      "importPostalcodes": true,
+      "importPlace": [
+        "85632599"
+      ]
+    },
     "interpolation": {
       "download": {
         "tiger": {

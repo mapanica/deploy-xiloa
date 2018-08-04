@@ -58,6 +58,13 @@ services:
       - "./pelias.json:/code/pelias.json"
       - "${DATA_DIR}:/data"
 
+  whosonfirst:
+    image: pelias/whosonfirst:master
+    container_name: pelias_whosonfirst
+    volumes:
+      - "./pelias.json:/code/pelias.json"
+      - "${DATA_DIR}:/data"
+
   openstreetmap:
     image: pelias/openstreetmap:master
     container_name: pelias_openstreetmap
@@ -99,7 +106,7 @@ services:
     networks:
       - internal
 
-  pip:
+  pip-service:
     image: pelias/pip-service:master
     container_name: pelias_pip-service
     restart: always
