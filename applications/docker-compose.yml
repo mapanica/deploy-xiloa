@@ -74,6 +74,13 @@ services:
     networks:
       - internal
 
+  openaddresses:
+    image: pelias/openaddresses:master
+    container_name: pelias_openaddresses
+    volumes:
+      - "./pelias.json:/code/pelias.json"
+      - "${DATA_DIR}:/data"
+
   transit:
     image: pelias/transit:master
     container_name: pelias_transit
@@ -133,15 +140,16 @@ services:
     image: nginx
     container_name: pelias_preview
     restart: always
-    ports: [ "3000:80" ]
+    expose: 
+      - "80"
     volumes:
-      - "/home/user/pelias/common/preview:/usr/share/nginx/html"
+      - ./data/pelias/preview:/usr/share/nginx/html"
     labels:
       - "traefik.enable=true"
       - "traefik.backend=preview"
       - "traefik.frontend.rule=Host:buscar.mapanica.net"
       - "traefik.docker.network=reverseproxy_web"
-      - "traefik.port=3000"
+      - "traefik.port=80"
     networks:
       - web
       - internal

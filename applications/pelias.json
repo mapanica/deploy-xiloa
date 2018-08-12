@@ -53,6 +53,9 @@
         "filename": "nicaragua-latest.osm.pbf"
       }]
     },
+    "openaddresses": {
+      "datapath": "/data/openaddresses"
+    },
     "transit": {
       "datapath": "/data/transit",
       "feeds": [
