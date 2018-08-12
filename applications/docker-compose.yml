@@ -143,7 +143,7 @@ services:
     expose: 
       - "80"
     volumes:
-      - ./data/pelias/preview:/usr/share/nginx/html"
+      - "./data/pelias/preview:/usr/share/nginx/html"
     labels:
       - "traefik.enable=true"
       - "traefik.backend=preview"
